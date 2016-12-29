@@ -1,3 +1,14 @@
+--the set weather commands
+--[[
+weather commands:
+0 clear
+1 light
+2 heavy
+3 storm
+
+can either type the word or number to get the state if you have server privelage
+
+]]--
 minetest.register_chatcommand("weather", {
 	params = "<weather type>",
 	description = "Set the weather",
