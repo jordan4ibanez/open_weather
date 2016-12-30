@@ -62,15 +62,10 @@ open_weather.set_spawner = function(player)
 	--add particle spawners
 	local pos = player:getpos()
 	local timeofday = minetest.get_timeofday()
-	local light = minetest.get_node_light(pos, timeofday)
+	local light = minetest.get_node_light(pos)
 	local id = nil
-	local is_sheltered = false
-	
-	--tell if sheltered
-	if light and light < 15 then
-		is_sheltered = true
-	end
-	
+	local is_sheltered = not minetest.line_of_sight(pos, {x=pos.x,y=pos.y+40,z=pos.z}, 1) --will still rain if in huge house
+		
 	--update sounds
 	if open_weather.sounds[name] ~= nil and is_sheltered ~= open_weather.sheltered[name] then
 		--stop sound
@@ -140,6 +135,8 @@ open_weather.set_spawner = function(player)
 	open_weather.sheltered[name] = is_sheltered
 
 end
+
+test_light_level = nil
 
 --the global step function for weather
 minetest.register_globalstep(function(dtime)
