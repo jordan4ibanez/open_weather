@@ -32,7 +32,8 @@ open_weather.sounds = {}
 open_weather.spawner_timer = 0
 --remember if player is inside or outside
 open_weather.sheltered = {}
-
+--the players skybox
+open_weather.skybox = {}
 --this sets the local particle spawner to the player
 open_weather.set_spawner = function(player)
 	
@@ -52,6 +53,11 @@ open_weather.set_spawner = function(player)
 		print("stopping sound")
 		minetest.sound_stop(open_weather.sounds[name])
 		open_weather.sounds[name] = nil
+	end
+	--remove player's skybox
+	if open_weather.state == 0 and open_weather.skybox[name] ~= nil then
+		print("removing skybox")
+		player:set_sky({r=0, g=0, b=0},"regular",{})
 	end
 		
 	--return if clear to not waste resources
@@ -92,6 +98,8 @@ open_weather.set_spawner = function(player)
 		
 		open_weather.sounds[name] = id
 	end
+	
+	--set particle spawner
 	if is_sheltered == false then
 		
 		--set the particle amount
@@ -122,6 +130,22 @@ open_weather.set_spawner = function(player)
 			texture = "open_weather_rain_drop.png",
 			playername = name,
 		})
+	end
+	
+	--set skybox to state
+	if open_weather.skybox[name] ~= nil or open_weather.state ~= open_weather.skybox[name] then
+		print("setting player's skybox")
+		open_weather.skybox[name] = open_weather.state
+		--darkness depends on weather
+		local rgb
+		if open_weather.state == 1 then
+			rgb = {r=210, g=210, b=210}
+		elseif open_weather.state == 2 then
+			rgb = {r=178, g=178, b=178}
+		elseif open_weather.state == 3 then
+			rgb = {r=106, g=106, b=106}
+		end
+		player:set_sky(rgb,"plain",{})
 	end
 	
 	--add particle spawner id to global table
