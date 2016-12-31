@@ -223,20 +223,18 @@ open_weather.update_skyboxes = function(player,name)
 	
 	--this section of code is copied from https://github.com/paramat/snowdrift/blob/master/init.lua
 	--thanks paramat
-	local time_mod = minetest.get_timeofday() * 100
 
 	--evening
-	--first transition starts at 18250
+	--transition starts at 18250 ends at 19502
 	--morning
-	-- first transition (24000 -) 4500, (1 -) 0.1875
-	-- last transition (24000 -) 7000, (1 -) 0.2396
+	-- transition starts 4500 ends at 7000
 	
 	--the blue tint modifier
 	local modifier = 0
 	
 	--the darkness equation is rgb_tint - (max_darken ((realtime-begin_time)/transition_time))
 	
-	--the brighten equation is rgb_ting - (max_darken-(max_darken*((realtime - begin_time)/transition_time)))
+	--the brighten equation is rgb_tint - (max_darken-(max_darken*((realtime - begin_time)/transition_time)))
 	
 	--same equation is used for tnt only max_darken is max_tnt
 	
