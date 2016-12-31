@@ -202,18 +202,50 @@ end
 
 --set skybox to state
 open_weather.update_skyboxes = function(player,name)
-	if open_weather.skybox[name] == nil or open_weather.state ~= open_weather.skybox[name] then
+	
+	
+	local realtime = minetest.get_timeofday() * 24000
+	--if weather state or type changes or updated skybox or time updates
+	--update skybox
+	if (open_weather.skybox[name] == nil or open_weather.state ~= open_weather.skybox[name]) or (realtime >= 18250 or (realtime >= 4500 and realtime <= 7000) or (realtime >= 0 and realtime < 4500))then
+	
 		open_weather.skybox[name] = open_weather.state
-		--darkness depends on weather
+		
+		--darkness of clouds depends on weather
 		local rgb
 		if open_weather.state == 1 then
-			rgb = {r=178, g=178, b=178}
+			rgb = 130
 		elseif open_weather.state == 2 then
-			rgb = {r=135, g=135, b=135}
+			rgb = 117
 		elseif open_weather.state == 3 then
-			rgb = {r=106, g=106, b=106}
+			rgb = 105
 		end
-		player:set_sky(rgb,"plain",{})
+		
+		
+		--this section of code is copied from https://github.com/paramat/snowdrift/blob/master/init.lua
+		--thanks paramat
+		local time_mod = minetest.get_timeofday() * 100
+
+		--evening
+		--first transition starts at 18250
+		--morning
+		-- first transition (24000 -) 4500, (1 -) 0.1875
+		-- last transition (24000 -) 7000, (1 -) 0.2396
+		
+		--evening
+		if realtime >= 18250 then		
+			rgb = rgb - time_mod
+		--morning
+		elseif realtime >= 4500 and realtime <= 7000 then
+			rgb = rgb - 99 + ((time_mod - 18.75)*9.5)
+		--middle of night
+		elseif realtime >= 0 and realtime < 4500 then
+			rgb = rgb - 99
+		end
+		--else don't modify (day)
+
+		
+		player:set_sky({r=rgb,g=rgb,b=rgb+5},"plain",{})
 	end
 end
 
