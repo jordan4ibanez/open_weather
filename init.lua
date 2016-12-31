@@ -207,46 +207,51 @@ open_weather.update_skyboxes = function(player,name)
 	local realtime = minetest.get_timeofday() * 24000
 	--if weather state or type changes or updated skybox or time updates
 	--update skybox
-	if (open_weather.skybox[name] == nil or open_weather.state ~= open_weather.skybox[name]) or (realtime >= 18250 or (realtime >= 4500 and realtime <= 7000) or (realtime >= 0 and realtime < 4500))then
 	
-		open_weather.skybox[name] = open_weather.state
-		
-		--darkness of clouds depends on weather
-		local rgb
-		if open_weather.state == 1 then
-			rgb = 130
-		elseif open_weather.state == 2 then
-			rgb = 117
-		elseif open_weather.state == 3 then
-			rgb = 105
-		end
-		
-		
-		--this section of code is copied from https://github.com/paramat/snowdrift/blob/master/init.lua
-		--thanks paramat
-		local time_mod = minetest.get_timeofday() * 100
-
-		--evening
-		--first transition starts at 18250
-		--morning
-		-- first transition (24000 -) 4500, (1 -) 0.1875
-		-- last transition (24000 -) 7000, (1 -) 0.2396
-		
-		--evening
-		if realtime >= 18250 then		
-			rgb = rgb - time_mod
-		--morning
-		elseif realtime >= 4500 and realtime <= 7000 then
-			rgb = rgb - 99 + ((time_mod - 18.75)*9.5)
-		--middle of night
-		elseif realtime >= 0 and realtime < 4500 then
-			rgb = rgb - 99
-		end
-		--else don't modify (day)
-
-		
-		player:set_sky({r=rgb,g=rgb,b=rgb+5},"plain",{})
+	open_weather.skybox[name] = open_weather.state
+	
+	--darkness of clouds depends on weather
+	local rgb
+	if open_weather.state == 1 then
+		rgb = 130
+	elseif open_weather.state == 2 then
+		rgb = 117
+	elseif open_weather.state == 3 then
+		rgb = 105
 	end
+	
+	
+	--this section of code is copied from https://github.com/paramat/snowdrift/blob/master/init.lua
+	--thanks paramat
+	local time_mod = minetest.get_timeofday() * 100
+
+	--evening
+	--first transition starts at 18250
+	--morning
+	-- first transition (24000 -) 4500, (1 -) 0.1875
+	-- last transition (24000 -) 7000, (1 -) 0.2396
+	
+	--the blue tint modifier
+	local modifier = 0
+	
+	--evening
+	if realtime >= 18250 then		
+		rgb = rgb - time_mod
+		modifier = 16
+	--morning transition
+	elseif realtime >= 4500 and realtime <= 7000 then
+		rgb = rgb - 99 + ((time_mod - 18.75)*9.5)
+		modifier = 16 - ((time_mod - 18.75)*1.53) --precise, enough
+	--middle of night
+	elseif realtime >= 0 and realtime < 4500 then
+		rgb = rgb - 99
+		modifier = 16
+	end
+	--else don't modify (day)
+
+	
+	player:set_sky({r=rgb,g=rgb,b=rgb+modifier},"plain",{})
+
 end
 
 
