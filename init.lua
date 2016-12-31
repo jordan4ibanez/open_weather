@@ -234,17 +234,23 @@ open_weather.update_skyboxes = function(player,name)
 	--the blue tint modifier
 	local modifier = 0
 	
-	--evening
-	if realtime >= 18250 then		
-		rgb = rgb - time_mod
-		modifier = 16
-	--morning transition
+	--the darkness equation is rgb_tint - (max_darken ((realtime-begin_time)/transition_time))
+	
+	--the brighten equation is rgb_ting - (max_darken-(max_darken*((realtime - begin_time)/transition_time)))
+	
+	--same equation is used for tnt only max_darken is max_tnt
+	
+	--evening transition - darken
+	if realtime >= 18250 and realtime <= 19502 then		
+		rgb = rgb - (100*((realtime-18250)/1252))
+		modifier = 16 * ((realtime-18250)/1252) --transition blue
+	--morning transition - reversed to lighten
 	elseif realtime >= 4500 and realtime <= 7000 then
-		rgb = rgb - 99 + ((time_mod - 18.75)*9.5)
-		modifier = 16 - ((time_mod - 18.75)*1.53) --precise, enough
+		rgb = rgb - (100-(100*((realtime - 4500)/2500)))	
+		modifier = 16 - (16*((realtime - 4500)/2500)) --transition blue
 	--middle of night
-	elseif realtime >= 0 and realtime < 4500 then
-		rgb = rgb - 99
+	elseif (realtime >= 0 and realtime < 4500) or realtime > 19502 then
+		rgb = rgb - 100
 		modifier = 16
 	end
 	--else don't modify (day)
