@@ -55,7 +55,6 @@ open_weather.set_spawner = function(player)
 	
 	
 	--stop sounds
-	print(open_weather.type, open_weather.old_type)
 	if (open_weather.state == 0 or open_weather.type ~= open_weather.old_type) and open_weather.sounds[name] ~= nil then
 		--stop sound
 		print("stopping sound")
@@ -211,9 +210,9 @@ open_weather.set_spawner = function(player)
 		--darkness depends on weather
 		local rgb
 		if open_weather.state == 1 then
-			rgb = {r=210, g=210, b=210}
-		elseif open_weather.state == 2 then
 			rgb = {r=178, g=178, b=178}
+		elseif open_weather.state == 2 then
+			rgb = {r=135, g=135, b=135}
 		elseif open_weather.state == 3 then
 			rgb = {r=106, g=106, b=106}
 		end
