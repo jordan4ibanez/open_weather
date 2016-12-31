@@ -41,19 +41,8 @@ open_weather.type = 0
 --the old type
 open_weather.old_type = 0
 
---this sets the local particle spawner to the player
-open_weather.set_spawner = function(player)
-	
-	local name = player:get_player_name()
-	
-	--delete old particle spawner
-	if open_weather.spawners[name] ~= nil then
-		--print("deleting id "..open_weather.spawners[name])
-		minetest.delete_particlespawner(open_weather.spawners[name])
-		open_weather.spawners[name] = nil
-	end
-	
-	
+--stop effects
+open_weather.sound_effect_stop = function(player,name)
 	--stop sounds
 	if (open_weather.state == 0 or open_weather.type ~= open_weather.old_type) and open_weather.sounds[name] ~= nil then
 		--stop sound
@@ -65,34 +54,25 @@ open_weather.set_spawner = function(player)
 	if open_weather.state == 0 and open_weather.skybox[name] ~= nil then
 		print("removing skybox")
 		player:set_sky({r=0, g=0, b=0},"regular",{})
+		open_weather.skybox[name] = nil
 	end
-	
-	
-	--return if clear to not waste resources
-	if open_weather.state == 0 then
-		return
+end
+
+--delete old particle spawner
+open_weather.clear_old_spawners = function(player,name)
+	if open_weather.spawners[name] ~= nil then
+		--print("deleting id "..open_weather.spawners[name])
+		minetest.delete_particlespawner(open_weather.spawners[name])
+		open_weather.spawners[name] = nil
 	end
-	
-	--variables for particle spawners
-	local pos = player:getpos()
-	local id = nil
-	local is_sheltered = not (minetest.get_node_light(pos, 0.5) == 15)
-	
-	
-	
-	--update sounds
-	if open_weather.sounds[name] ~= nil and is_sheltered ~= open_weather.sheltered[name] then
-		--stop sound
-		print("updating sound")
-		minetest.sound_stop(open_weather.sounds[name])
-		open_weather.sounds[name] = nil
-	end
-	
-	--play weather sounds
+end
+
+--play weather sounds
+open_weather.play_weather_sounds = function(player,name,is_sheltered)
+	local id 
 	--rain
 	if open_weather.type == 0 then
 		if open_weather.state ~= 0 and open_weather.sounds[name] == nil then
-			local id 
 			if is_sheltered == false then
 				print("playing outside sound")
 				id = minetest.sound_play("open_weather_rain_outside", {
@@ -112,8 +92,7 @@ open_weather.set_spawner = function(player)
 		end
 	--snow
 	elseif open_weather.type == 1 then
-		if open_weather.state ~= 0 and open_weather.sounds[name] == nil then
-			local id 
+		if open_weather.state ~= 0 and open_weather.sounds[name] == nil then 
 			if is_sheltered == false then
 				print("playing outside sound")
 				id = minetest.sound_play("open_weather_snow_outside", {
@@ -131,9 +110,11 @@ open_weather.set_spawner = function(player)
 			
 			open_weather.sounds[name] = id
 		end
-	
 	end
-	
+end
+
+open_weather.set_particle_spawner = function(player,name,is_sheltered,pos)
+	local id
 	--set particle spawner
 	if is_sheltered == false then
 		
@@ -203,8 +184,24 @@ open_weather.set_spawner = function(player)
 			playername = name,
 		})
 	end
-	
-	--set skybox to state
+	--add particle spawner id to global table
+	if id ~= nil then
+		--print("adding id "..id)
+		open_weather.spawners[name] = id
+	end
+end
+--make sounds update
+open_weather.update_sounds = function(player,name,is_sheltered)
+	if open_weather.sounds[name] ~= nil and is_sheltered ~= open_weather.sheltered[name] then
+		--stop sound
+		print("updating sound")
+		minetest.sound_stop(open_weather.sounds[name])
+		open_weather.sounds[name] = nil
+	end
+end
+
+--set skybox to state
+open_weather.update_skyboxes = function(player,name)
 	if open_weather.skybox[name] == nil or open_weather.state ~= open_weather.skybox[name] then
 		open_weather.skybox[name] = open_weather.state
 		--darkness depends on weather
@@ -218,12 +215,48 @@ open_weather.set_spawner = function(player)
 		end
 		player:set_sky(rgb,"plain",{})
 	end
+end
+
+
+--this sets the local particle spawner to the player
+open_weather.set_spawner = function(player)
 	
-	--add particle spawner id to global table
-	if id ~= nil then
-		--print("adding id "..id)
-		open_weather.spawners[name] = id
+	local name = player:get_player_name()
+	
+
+	--stop old sounds if cold changes or weather is clear
+	--also update skybox if changes
+	open_weather.sound_effect_stop(player,name)
+	
+	--remove old spawners on each step
+	open_weather.clear_old_spawners(player,name)
+	
+	
+	--return if clear to not waste resources
+	if open_weather.state == 0 then
+		return
 	end
+	
+	
+	--variables for particle spawners
+	local pos = player:getpos()
+	local id = nil
+	local is_sheltered = not (minetest.get_node_light(pos, 0.5) == 15)
+	
+	
+	--make the sounds update
+	open_weather.update_sounds(player,name,is_sheltered)
+
+	
+	--play new sounds if updated or new
+	open_weather.play_weather_sounds(player,name,is_sheltered)
+	
+	--set the particles to simulate weather
+	open_weather.set_particle_spawner(player,name,is_sheltered,pos)
+		
+	--set the skybox if needs update
+	open_weather.update_skyboxes(player,name)
+
 	--remember if sheltered
 	open_weather.sheltered[name] = is_sheltered
 
