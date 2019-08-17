@@ -281,6 +281,7 @@ open_weather.set_spawner = function(player)
 	
 	--variables for particle spawners
 	local pos = player:getpos()
+	pos.y = pos.y + 1
 	local id = nil
 	local is_sheltered = not (minetest.get_node_light(pos, 0.5) == 15)
 	
